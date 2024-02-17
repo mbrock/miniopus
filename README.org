@@ -1,0 +1,20 @@
+=miniopus= is an efficient audio capture and streaming solution composed
+of two main components: =minirec= and =miniogg=.
+
+=minirec= operates as an audio capture server.
+
+It captures audio input from a specified device. 
+
+Then, it streams the audio to connected clients over UNIX sockets.
+
+It uses the =miniaudio= library to capture the audio. 
+
+It streams the captured audio data to all connected clients in real time.
+
+=miniogg= functions as a client. 
+
+It captures audio from a UNIX socket. 
+
+The audio is encoded using the Opus codec. 
+
+Then, the encoded audio is streamed to standard output.
