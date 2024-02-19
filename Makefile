@@ -1,6 +1,13 @@
 PREFIX=/usr/local
 CC=gcc
-OPUSFLAGS=$(shell pkg-config --cflags --libs libopusenc)
+
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+    OPUSFLAGS := $(shell pkg-config --cflags --libs --static libopusenc)
+endif
+ifeq ($(UNAME_S),Darwin)
+    OPUSFLAGS := $(shell pkg-config --cflags --libs libopusenc)
+endif
 
 all: minirec miniogg
 
