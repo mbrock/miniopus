@@ -36,9 +36,8 @@ You can also use =miniogg= to record audio to a file:
 
 * =minirec=
 
-=minirec= is an audio capture server that uses
-[https://miniaud.io/miniaudio](miniaudio) to capture audio from a
-specified device and write it to a UNIX socket.
+=minirec= is an audio capture server that uses [[https://miniaud.io/][miniaudio]] to capture
+audio from a specified device and write it to a UNIX socket.
 
 It continously captures audio input from a specified device, so that
 any delay associated with starting the capture only needs to happen
@@ -55,9 +54,9 @@ output.
 
 * =minigram=
 
-=minigram= in turn starts a =miniogg= and streams it to
-[https://deepgram.com](Deepgram)'s API for real-time transcription,
-outputting its JSON events on standard output.
+=minigram= in turn starts a =miniogg= and streams it to [[https://deepgram.com/][Deepgram]]'s API for
+real-time transcription, outputting its JSON events on standard
+output.
 
 It takes parameters corresponding to Deepgram's options; see the
 source code for details.
