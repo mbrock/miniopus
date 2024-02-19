@@ -6,9 +6,32 @@
 # but it turned out to be a combination of libopusenc settings
 # and good old stdout buffering.
 
-set -eo pipefail
-params="filler_words=true&interim_results=true&punctuation=false\
-&smart_format=true&model=nova-2-general&vad_events=false&diarize=true"
-auth="Authorization: Token $DEEPGRAM_API_KEY"
-miniogg ~/minirec.sock | websocat -H "$auth" --binary --no-line \
-  - msg2line:wss://api.deepgram.com/v1/listen"?$params"
+set -euo pipefail
+
+for arg in "$@"; do
+  case "$arg" in
+	--model=*) model="${arg#*=}" ;;
+	--interim-results=*) interim_results="${arg#*=}" ;;
+	--smart-format=*) smart_format="${arg#*=}" ;;
+	--punctuate=*) punctuate="${arg#*=}" ;;
+	--language=*) language="${arg#*=}" ;;
+	--diarize=*) diarize="${arg#*=}" ;;
+	--*) echo >&2 "Unknown option: $arg"; exit 1 ;;
+	*) echo >&2 "Unknown argument: $arg"; exit 1 ;;
+  esac
+done
+
+params="model=${model:-nova-2-general}"
+params="$params&interim_results=${interim_results:-true}"
+params="$params&smart_format=${smart_format:-true}"
+params="$params&punctuate=${punctuate:-true}"
+params="$params&diarize=${diarize:-true}"
+params="$params&language=${language:-en}"
+
+url="wss://api.deepgram.com/v1/listen?$params"
+auth="Authorization: Token ${DEEPGRAM_API_KEY}"
+
+echo >&2 "endpoint: $url"
+
+miniogg ~/minirec.sock | 
+websocat -H "$auth" --binary --no-line - msg2line:"$url"
