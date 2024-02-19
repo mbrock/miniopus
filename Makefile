@@ -8,7 +8,7 @@ miniogg: miniogg.c
 	$(CC) -W -Wall miniogg.c -o miniogg -g $(OPUSFLAGS)
 
 minirec: minirec.c miniaudio.h
-	$(CC) -W -Wall minirec.c -o minirec -g
+	$(CC) -W -Wall minirec.c -o minirec -g -lm
 
 clean:
 	rm -f minirec miniogg 
