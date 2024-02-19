@@ -19,7 +19,7 @@
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
 
-#define SOCKET_PATH "audio.sock"
+#define SOCKET_PATH "minirec.sock"
 
 static int server_fd, client_fds[10];
 static unsigned long client_count = 0;

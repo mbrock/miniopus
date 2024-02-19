@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# This does the same thing as `minigram.js' but using just `websocat'.
+#
+# I had some latency problems that I thought were websocat's fault,
+# but it turned out to be a combination of libopusenc settings
+# and good old stdout buffering.
+
+set -eo pipefail
+params="filler_words=true&interim_results=true&punctuation=false\
+&smart_format=true&model=nova-2-general&vad_events=false&diarize=true"
+auth="Authorization: Token $DEEPGRAM_API_KEY"
+miniogg ~/minirec.sock | websocat -H "$auth" --binary --no-line \
+  - msg2line:wss://api.deepgram.com/v1/listen"?$params"

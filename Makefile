@@ -13,4 +13,5 @@ clean:
 	rm -f minirec miniogg 
 	rm -rf *.dSYM
 
-
+install: miniogg minirec minigram
+	install -v miniogg minirec minigram ~/bin/
