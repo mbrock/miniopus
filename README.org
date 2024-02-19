@@ -1,20 +1,77 @@
-=miniopus= is an efficient audio capture and streaming solution composed
-of two main components: =minirec= and =miniogg=.
+* Installation
 
-=minirec= operates as an audio capture server.
+Dependencies:
 
-It captures audio input from a specified device. 
+- =libopusenc=
+  - =brew install libopusenc=
+- =websocat=
+  - =brew install websocat=
 
-Then, it streams the audio to connected clients over UNIX sockets.
+Then run =make= and =make install= or =make install PREFIX=~/bin= or
+whatever.
 
-It uses the =miniaudio= library to capture the audio. 
+For Emacs, just =(load "~/src/miniopus/talk-mode.el")= or whatever.
 
-It streams the captured audio data to all connected clients in real time.
+* Usage
 
-=miniogg= functions as a client. 
+Run =minirec= in a terminal to see the names of your capture devices:
 
-It captures audio from a UNIX socket. 
+#+begin_src sh
+  minirec
+#+end_src
 
-The audio is encoded using the Opus codec. 
+Then run =minirec= with the name of the device you want to capture:
 
-Then, the encoded audio is streamed to standard output.
+#+begin_src sh
+  minirec "MacBook Air Microphone"
+#+end_src   
+
+Then you can use =talk-mode= as described below.
+
+You can also use =miniogg= to record audio to a file:
+
+#+begin_src sh
+  miniogg ~/minirec.sock > foo.ogg
+#+end_src
+
+* =minirec=
+
+=minirec= is an audio capture server that uses
+[https://miniaud.io/miniaudio](miniaudio) to capture audio from a
+specified device and write it to a UNIX socket.
+
+It continously captures audio input from a specified device, so that
+any delay associated with starting the capture only needs to happen
+once.
+
+The audio it captures can be read from a UNIX socket by any number of
+concurrent readers as raw 48 KHz 16-bit signed integer stereo samples.
+
+* =miniogg=
+
+=miniogg= is a client that reads from the =minirec= socket, encodes the
+audio with Opus, and writes a low-latency Ogg stream to its standard
+output.
+
+* =minigram=
+
+=minigram= in turn starts a =miniogg= and streams it to
+[https://deepgram.com](Deepgram)'s API for real-time transcription,
+outputting its JSON events on standard output.
+
+It takes parameters corresponding to Deepgram's options; see the
+source code for details.
+
+* =talk-mode.el=
+
+Finally, =talk-mode= is an Emacs minor mode that enables real-time
+transcription in any buffer.
+
+Start it with =M-x talk-mode= and then use =C-c C-t= to start a
+transcription process at your current point.
+
+Real-time transcription results will be appended to that place; you
+can move your point around, visit other buffers, or whatever.
+
+Press =C-c C-k= to stop all transcription processes in the current
+buffer.

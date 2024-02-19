@@ -1,3 +1,4 @@
+PREFIX=/usr/local
 CC=gcc
 OPUSFLAGS=$(shell pkg-config --cflags --libs libopusenc)
 
@@ -14,4 +15,4 @@ clean:
 	rm -rf *.dSYM
 
 install: miniogg minirec minigram
-	install -v miniogg minirec minigram ~/bin/
+	install -v miniogg minirec minigram /usr/local/bin/
