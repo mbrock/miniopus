@@ -4,11 +4,10 @@ CFLAGS=-W -Wall
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
-    OPUSFLAGS := $(shell pkg-config --cflags --libs --static libopusenc)
-    CFLAGS += -static
+  OPUSFLAGS := -static $(shell pkg-config --cflags --libs --static libopusenc)
 endif
 ifeq ($(UNAME_S),Darwin)
-    OPUSFLAGS := $(shell pkg-config --cflags --libs libopusenc)
+  OPUSFLAGS := $(shell pkg-config --cflags --libs libopusenc)
 endif
 
 all: minirec miniogg
