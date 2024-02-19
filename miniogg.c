@@ -40,20 +40,27 @@ handle_sigint (int sig) {
 }
 
 static int 
-write_callback (void *, const unsigned char *ptr, opus_int32 len) 
+write_callback (void *data __attribute__((unused)), 
+		const unsigned char *ptr, 
+		opus_int32 len) 
 {
-    return fwrite (ptr, 1, len, stdout) == len ? 0 : -1;
+  return fwrite (ptr, 1, len, stdout) == (unsigned) len ? 0 : -1;
 }
 
-
 static int 
-close_callback (void *) {
+close_callback (void *data __attribute__((unused))) {
     return 0;
 }
 
 int 
 main (int argc, char **argv) 
 {
+  if (argc != 2) 
+    {
+      fprintf (stderr, "usage: %s <minirec socket>\n", argv[0]);
+      exit (EXIT_FAILURE);
+    }
+
   sock = socket (AF_UNIX, SOCK_STREAM, 0);
   if (sock < 0) {
     perror ("socket");

@@ -22,18 +22,18 @@
 #define SOCKET_PATH "audio.sock"
 
 static int server_fd, client_fds[10];
-static int client_count = 0;
+static unsigned long client_count = 0;
 static pthread_mutex_t client_fds_lock;
 
 static void 
 remove_client (int client_fd) {
-  for (int i = 0; i < client_count; i++) 
+  for (unsigned i = 0; i < client_count; i++) 
     {
       if (client_fds[i] == client_fd) 
 	{
 	  close (client_fds[i]);
 
-	  for (int j = i; j < client_count - 1; j++)
+	  for (unsigned j = i; j < client_count - 1; j++)
 	    client_fds[j] = client_fds[j + 1];
 
 	  client_count--;
@@ -44,13 +44,13 @@ remove_client (int client_fd) {
 
 void 
 our_audio_callback (ma_device *device, 
-		    void *output, 
+		    void *output __attribute__((unused)), 
 		    const void *input, 
 		    ma_uint32 frames) 
 {
   pthread_mutex_lock (&client_fds_lock);
 
-  for (int i = 0; i < client_count; i++)
+  for (unsigned i = 0; i < client_count; i++)
     if (write (client_fds[i], 
 	       input, 
 	       frames * device->capture.channels * sizeof(ma_uint16)) < 0)
@@ -69,7 +69,7 @@ our_audio_callback (ma_device *device,
 }
 
 static void * 
-connection_handler (void *arg) 
+connection_handler (void *arg __attribute__((unused))) 
 {
   struct sockaddr_un client_addr;
   socklen_t client_addr_len = sizeof (client_addr);
@@ -105,10 +105,31 @@ connection_handler (void *arg)
     return NULL;
 }
 
+void
+usage (const char *progname) 
+{
+  fprintf (stderr, "Usage: %s [device name]\n", progname);
+}
+
 int 
 main (int argc, char **argv) 
 {
-  const char *desired_device_name = argv[1];
+  const char *desired_device_name = NULL;
+
+  if (argc == 2 && strcmp (argv[1], "--help") == 0)
+    {
+      usage (argv[0]);
+      return 1;
+    }
+  else if (argc == 2)
+    {
+      desired_device_name = argv[1];
+    }
+  else if (argc > 2)
+    {
+      usage (argv[0]);
+      return 1;
+    }
 
   ma_context context;
   if (ma_context_init (NULL, 0, NULL, &context) != MA_SUCCESS) {
@@ -143,6 +164,9 @@ main (int argc, char **argv)
 	  break;
 	}
     }
+
+  if (desired_device_name == NULL)
+    return 0;
 
   if (!pDeviceInfo) 
     {
@@ -220,7 +244,7 @@ main (int argc, char **argv)
   close(server_fd);
   unlink(SOCKET_PATH);
   
-  for (int i = 0; i < client_count; i++) {
+  for (unsigned i = 0; i < client_count; i++) {
     close (client_fds[i]);
   }
   
