@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+minigram --oneshot | 
+llm -m 4t -o json_object true -s "turn user's voice command into a real shell command (uname: $(uname -a)), output JSON like {\"command\": \"valid shell command here\"}" | 
+jq -r '.command' | 
+bash -x

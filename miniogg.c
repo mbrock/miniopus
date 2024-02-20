@@ -21,8 +21,6 @@ static int sock = -1;
 
 void 
 handle_sigint (int sig) {
-  fprintf (stderr, "caught signal %d, exiting\n", sig);
-
   if (enc != NULL) 
     {
       ope_encoder_drain (enc);
@@ -120,8 +118,8 @@ main (int argc, char **argv)
       exit (EXIT_FAILURE);
     }
 
-  fprintf (stderr, "initial muxing delay: %d samples, %2.2f s\n", 
-	   mux_delay, mux_delay / 48000.0);
+  /* fprintf (stderr, "initial muxing delay: %d samples, %2.2f s\n",  */
+  /* 	   mux_delay, mux_delay / 48000.0); */
 
   // set the muxing delay to 0.1s, i.e. 4800 samples
   if (ope_encoder_ctl (enc, OPE_SET_MUXING_DELAY (4800)) != OPE_OK) 
@@ -133,7 +131,7 @@ main (int argc, char **argv)
       exit (EXIT_FAILURE);
     }
 
-  fprintf (stderr, "set muxing delay to 0.1s\n");
+  /* fprintf (stderr, "set muxing delay to 0.1s\n"); */
 
   // now do the decision delay
 
@@ -148,8 +146,8 @@ main (int argc, char **argv)
       exit (EXIT_FAILURE);
     }
 
-  fprintf (stderr, "initial decision delay: %d samples, %2.2f s\n",
-	   decision_delay, decision_delay / 48000.0);
+  /* fprintf (stderr, "initial decision delay: %d samples, %2.2f s\n", */
+  /* 	   decision_delay, decision_delay / 48000.0); */
 
   // set the decision delay to 0.1s, i.e. 4800 samples
   if (ope_encoder_ctl (enc, OPE_SET_DECISION_DELAY (4800)) != OPE_OK) 
@@ -184,6 +182,6 @@ main (int argc, char **argv)
   ope_comments_destroy (comments);
   close (sock);
   
-  fprintf(stderr, "done\n");
+  /* fprintf(stderr, "done\n"); */
   return 0;
 }

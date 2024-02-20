@@ -1,11 +1,4 @@
 #!/usr/bin/env bash
-
-# This does the same thing as `minigram.js' but using just `websocat'.
-#
-# I had some latency problems that I thought were websocat's fault,
-# but it turned out to be a combination of libopusenc settings
-# and good old stdout buffering.
-
 set -euo pipefail
 
 for arg in "$@"; do
@@ -16,22 +9,39 @@ for arg in "$@"; do
 	--punctuate=*) punctuate="${arg#*=}" ;;
 	--language=*) language="${arg#*=}" ;;
 	--diarize=*) diarize="${arg#*=}" ;;
+	--oneshot) oneshot=true ;;
 	--*) echo >&2 "Unknown option: $arg"; exit 1 ;;
 	*) echo >&2 "Unknown argument: $arg"; exit 1 ;;
   esac
 done
 
 params="model=${model:-nova-2-general}"
-params="$params&interim_results=${interim_results:-true}"
-params="$params&smart_format=${smart_format:-true}"
-params="$params&punctuate=${punctuate:-true}"
-params="$params&diarize=${diarize:-true}"
+params="$params&interim_results=${interim_results:-false}"
+params="$params&smart_format=${smart_format:-false}"
+params="$params&punctuate=${punctuate:-false}"
+params="$params&diarize=${diarize:-false}"
 params="$params&language=${language:-en}"
-
 url="wss://api.deepgram.com/v1/listen?$params"
 auth="Authorization: Token ${DEEPGRAM_API_KEY}"
 
-echo >&2 "endpoint: $url"
+coproc WEBSOCAT { 
+  websocat -E --no-close -H "$auth" --binary --no-line - msg2line:"$url"
+}
 
-miniogg ~/minirec.sock | 
-websocat -H "$auth" --binary --no-line - msg2line:"$url"
+exec {WEBSOCAT_IN}<&${WEBSOCAT[1]}
+exec {WEBSOCAT_OUT}<&${WEBSOCAT[0]}
+
+miniogg ~/minirec.sock >&$WEBSOCAT_IN & MINIOGG_PID=$!
+
+if [ -n "${oneshot:-}" ]; then
+  read -r line <&$WEBSOCAT_OUT
+  echo "$line" | jq -r '.channel.alternatives[0].transcript'
+  exec {WEBSOCAT_IN}<&-
+  exec {WEBSOCAT_OUT}<&-
+  kill -SIGINT $MINIOGG_PID  
+  kill -SIGINT $WEBSOCAT_PID
+else
+  while read -r line; do
+    echo "$line"
+  done <&$WEBSOCAT_OUT
+fi

@@ -22,5 +22,5 @@ clean:
 	rm -f minirec miniogg 
 	rm -rf *.dSYM
 
-install: miniogg minirec minigram
-	install -v miniogg minirec minigram /usr/local/bin/
+install: miniogg minirec minigram minibash
+	install -v miniogg minirec minigram minibash $(PREFIX)/bin/
