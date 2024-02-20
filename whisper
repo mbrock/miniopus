@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -eu
+
+for arg in "$@"; do
+  case $arg in
+      -h|--help)
+	  echo "Usage: whisper [options] <file>"
+	  echo "Options:"
+	  echo "  --language=<lang> Language e.g. sv"
+	  echo "  --prompt=<text>   Prompt for the model"
+	  echo "  --json            Output in JSON format"
+	  echo "  --srt             Output in SRT format"
+	  echo "  --vtt             Output in VTT format"
+	  echo "  --text            Output in plain text format"
+	  exit 0 ;;
+      --language=*)
+	  language="${arg#*=}" ;;
+      --prompt=*)
+	  prompt="${arg#*=}" ;;
+      --json)
+	  response_format=verbose_json ;;
+      --srt)
+	  response_format=srt ;;
+      --vtt)
+	  response_format=vtt ;;
+      --text)
+	  response_format=text ;;
+      *)
+	  file=$arg ;;
+  esac
+done  
+
+curl -s https://api.openai.com/v1/audio/transcriptions \
+     -H "Authorization: Bearer $OPENAI_API_KEY" \
+     -H "Content-Type: multipart/form-data" \
+     -F file="@$file" \
+     -F model=whisper-1 \
+     -F language=${language:-en} \
+     -F prompt="${prompt:-}" \
+     -F response_format=${response_format:-text}
