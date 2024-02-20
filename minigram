@@ -1,26 +1,41 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-for arg in "$@"; do
-  case "$arg" in
-	--model=*) model="${arg#*=}" ;;
-	--interim-results=*) interim_results="${arg#*=}" ;;
-	--smart-format=*) smart_format="${arg#*=}" ;;
-	--punctuate=*) punctuate="${arg#*=}" ;;
-	--language=*) language="${arg#*=}" ;;
-	--diarize=*) diarize="${arg#*=}" ;;
-	--oneshot) oneshot=true ;;
-	--*) echo >&2 "Unknown option: $arg"; exit 1 ;;
-	*) echo >&2 "Unknown argument: $arg"; exit 1 ;;
+OPTS_SPEC="\
+$0 [<options>]...
+--
+h,help!            print help
+save-audio=<path>  save audio to file
+language=<lang>    specify language code
+model=<model>      specify Deepgram model
+oneshot            print one final result and exit
+interim-results    enable interim results
+smart-format       enable smart format
+punctuate          enable punctuation
+diarize            enable diarization
+"
+
+eval "$(echo "$OPTS_SPEC" | 
+ git rev-parse --parseopt -- "$@" || echo exit $?)"
+
+params=
+save_audio=/dev/null
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --model) params+="&model=$2"; shift;;
+    --interim-results) params+="&interim_results=true";;
+    --smart-format) params+="&smart_format=true";;
+    --punctuate) params+="&punctuate=true";;
+    --diarize) params+="&diarize=true";;
+    --language) params+="&language=$2"; shift;;
+    --save-audio) save_audio="$2"; shift;;
+    --oneshot) oneshot=true;;
+    --) shift; break;;
   esac
+  shift
 done
 
-params="model=${model:-nova-2-general}"
-params="$params&interim_results=${interim_results:-false}"
-params="$params&smart_format=${smart_format:-false}"
-params="$params&punctuate=${punctuate:-false}"
-params="$params&diarize=${diarize:-false}"
-params="$params&language=${language:-en}"
 url="wss://api.deepgram.com/v1/listen?$params"
 auth="Authorization: Token ${DEEPGRAM_API_KEY}"
 
@@ -31,9 +46,10 @@ coproc WEBSOCAT {
 exec {WEBSOCAT_IN}<&${WEBSOCAT[1]}
 exec {WEBSOCAT_OUT}<&${WEBSOCAT[0]}
 
-miniogg ~/minirec.sock >&$WEBSOCAT_IN & MINIOGG_PID=$!
+miniogg ~/minirec.sock | tee "$save_audio" >&${WEBSOCAT_IN} &
+MINIOGG_PID=$!
 
-if [ -n "${oneshot:-}" ]; then
+if [[ "${oneshot:-}" == "true" ]]; then
   read -r line <&$WEBSOCAT_OUT
   echo "$line" | jq -r '.channel.alternatives[0].transcript'
   exec {WEBSOCAT_IN}<&-
