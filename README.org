@@ -61,6 +61,8 @@ output.
 It takes parameters corresponding to Deepgram's options; see the
 source code for details.
 
+You can also do =minigram --oneshot= to get just a single sentence.
+
 * =talk-mode.el=
 
 Finally, =talk-mode= is an Emacs minor mode that enables real-time

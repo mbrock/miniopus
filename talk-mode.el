@@ -69,6 +69,9 @@
 	   :stderr (generate-new-buffer-name "*minigram-error*")
 	   :command `("minigram" 
 		      "--diarize=true"
+		      "--smart-format=true"
+		      "--interim-results=true"
+		      "--diarize=true"
 		      ,(concat "--language=" language))
 	   :noquery t
 	   :connection-type nil
